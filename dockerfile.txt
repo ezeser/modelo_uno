@@ -16,5 +16,5 @@ COPY . .
 # Exponer el puerto (FastAPI por defecto usa 8000)
 EXPOSE 8000
 
-# Comando para ejecutar la app
+# Comando para ejecutar la app.
 CMD ["python", "app.py"]
