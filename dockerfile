@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 COPY requeriments.txt .
 RUN pip install --no-cache-dir -r requeriments.txt
 
+# 🔹 Forzar instalación de FastAPI y Uvicorn
+RUN pip install --no-cache-dir fastapi uvicorn[standard]
+
 # Copiar el código de la app
 COPY . .
 
