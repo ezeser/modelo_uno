@@ -1,0 +1,24 @@
+# Ignorar entornos virtuales y cache de Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar logs y resultados temporales
+*.log
+*.csv
+*.json
+*.sqlite
+*.db
+
+# Ignorar notebooks y archivos de editor
+*.ipynb
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Ignorar Git
+.git/
+.gitignore
