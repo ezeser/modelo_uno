@@ -12,7 +12,7 @@ def home():
 
 @app.post("/clasificar")
 def clasificar(texto: str):
-    prompt = f"Clasifica el siguiente ticket de soporte TI en una categoría: Correo, Red, Aplicación, Servidor, Seguridad.\n\nTicket: {texto}\n\nCategoría:"
+    prompt = f"Clasifica el siguiente ticket de soporte en una categoría de tecnologia\n\nTicket: {texto}\n\nCategoría:"
     result = classifier(prompt, max_length=50, do_sample=False)
     return {
         "texto": texto,
