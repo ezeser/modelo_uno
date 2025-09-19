@@ -15,7 +15,7 @@ fi
 read -rp "📝 Escribe el mensaje de commit: " COMMIT_MSG
 
 # 4️⃣ Obtener la última versión estable desde main/master
-BASE_TAG=$(git describe --tags --abbrev=0 origin/master 2>/dev/null || echo "v1.0.0")
+BASE_TAG=$(git describe --tags --abbrev=0 origin/prod 2>/dev/null || echo "v1.0.0")
 BASE_NUM=${BASE_TAG#v}
 IFS='.' read -r MAJOR MINOR PATCH <<<"$BASE_NUM"
 
@@ -39,7 +39,7 @@ read -rp "❓ ¿Proceder con estos cambios? (y/n): " CONFIRM
 # 7️⃣ Ejecutar commit y push
 git add .
 git commit -m "$COMMIT_MSG" || echo "⚠️ No hay cambios que commitear"
-git push origin master
+git push origin prod
 
 # 8️⃣ Crear y subir el nuevo tag
 git tag "$NEW_TAG"
