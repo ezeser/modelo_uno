@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import pipeline
-import json
 
-# Inicializar API
 app = FastAPI()
 
 # Modelo generativo
@@ -15,21 +13,18 @@ class Ticket(BaseModel):
 @app.post("/clasificar")
 def clasificar(ticket: Ticket):
     prompt = (
-        "Clasifica el siguiente reporte de usuario en una categoría breve de TI.\n"
-        "Devuelve SOLO un JSON válido con la clave 'categoria'.\n\n"
+        "Analiza el siguiente reporte de usuario y clasifícalo en UNA SOLA palabra relacionada "
+        "con soporte de TI (ejemplos: red, correo, aplicacion, hardware, seguridad, base_datos, sistema).\n"
+        "No devuelvas frases, solo una palabra.\n\n"
         f"Texto: {ticket.texto}\n\n"
-        "JSON:"
+        "Categoría:"
     )
 
-    result = generator(prompt, max_length=50, do_sample=False, num_return_sequences=1)
+    result = generator(prompt, max_length=5, do_sample=False, num_return_sequences=1)
     raw_output = result[0]["generated_text"].strip()
 
-    # Intentar parsear JSON, si falla devolver texto crudo
-    try:
-        parsed = json.loads(raw_output)
-        categoria = parsed.get("categoria", raw_output)
-    except Exception:
-        categoria = raw_output
+    # Normalizar (evitar espacios extras o mayúsculas)
+    categoria = raw_output.split()[0].lower()
 
     return {
         "texto": ticket.texto,
