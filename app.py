@@ -1,22 +1,16 @@
 from fastapi import FastAPI
 from transformers import pipeline
 
-# Inicializar API
 app = FastAPI()
 
-# Cargar modelo
-classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-categorias = ["Correo", "Red", "Aplicación"]
-
-@app.get("/")
-def home():
-    return {"message": "API de clasificación de tickets lista "}
+# Usamos un modelo instructivo en lugar de zero-shot
+generator = pipeline("text2text-generation", model="google/flan-t5-large")
 
 @app.post("/clasificar")
 def clasificar(texto: str):
-    result = classifier(texto, candidate_labels=categorias)
+    prompt = f"Clasifica el siguiente ticket de soporte TI en una categoría: {texto}"
+    result = generator(prompt, max_length=50, num_return_sequences=1)
     return {
         "texto": texto,
-        "categoria_predicha": result["labels"][0],
-        "score": result["scores"][0]
+        "categoria_generada": result[0]["generated_text"]
     }

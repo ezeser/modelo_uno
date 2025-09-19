@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir fastapi uvicorn[standard]
 # Copiar el código de la app
 COPY . .
 
-# Exponer puerto FastAPI
+# Exponer puerto FastAPI.
 EXPOSE 8000
 
 # Comando para arrancar la app
