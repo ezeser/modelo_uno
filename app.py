@@ -3,14 +3,18 @@ from transformers import pipeline
 
 app = FastAPI()
 
-# Usamos un modelo instructivo en lugar de zero-shot
-generator = pipeline("text2text-generation", model="google/flan-t5-large")
+# Modelo generativo de instrucciones
+classifier = pipeline("text2text-generation", model="google/flan-t5-base")
+
+@app.get("/")
+def home():
+    return {"message": "API de clasificación de tickets lista"}
 
 @app.post("/clasificar")
 def clasificar(texto: str):
-    prompt = f"Clasifica el siguiente ticket de soporte TI en una categoría: {texto}"
-    result = generator(prompt, max_length=50, num_return_sequences=1)
+    prompt = f"Clasifica el siguiente ticket de soporte TI en una categoría: Correo, Red, Aplicación, Servidor, Seguridad.\n\nTicket: {texto}\n\nCategoría:"
+    result = classifier(prompt, max_length=50, do_sample=False)
     return {
         "texto": texto,
-        "categoria_generada": result[0]["generated_text"]
+        "categoria_generada": result[0]["generated_text"].strip()
     }
