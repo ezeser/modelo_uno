@@ -4,13 +4,13 @@ from transformers import pipeline
 
 app = FastAPI()
 
-# Modelo generativo (puedes cambiar por otro instruct más grande si quieres)
-generator = pipeline("text2text-generation", model="google/flan-t5-base")
+# Inicializar pipeline zero-shot-classification
+classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 class Ticket(BaseModel):
     texto: str
 
-# Listado de categorías
+# Lista de categorías
 CATEGORIAS = [
     "Infraestructura", "Soporte", "BI", "ITSM", "Desarrollo", "Redes", "Seguridad",
     "Correo", "Aplicación", "Base de Datos", "Hardware", "Software",
@@ -23,23 +23,13 @@ CATEGORIAS = [
 
 @app.post("/clasificar")
 def clasificar(ticket: Ticket):
-    # Construir prompt con lista de categorías
-    prompt = f"""
-Clasifica el siguiente texto en una de las categorías de la lista.
-No inventes categorías nuevas. 
-Responde solo con el nombre exacto de la categoría.
-
-Lista de categorías: {CATEGORIAS}
-
-Texto: "{ticket.texto}"
-
-Categoría:
-"""
-
-    result = generator(prompt, max_length=50, do_sample=False, num_return_sequences=1)
-    raw_output = result[0]["generated_text"].strip()
-
+    # Ejecutar zero-shot classification
+    result = classifier(ticket.texto, candidate_labels=CATEGORIAS)
+    
+    # Devolver la categoría más probable
+    categoria = result["labels"][0]
+    
     return {
         "texto": ticket.texto,
-        "categoria": raw_output
+        "categoria": categoria
     }
