@@ -1,6 +1,6 @@
 name: Build and Push Docker Image
 
-# Ejecutar al hacer push a prod o manualmente
+# Se ejecuta al hacer push a la rama prod o manualmente
 on:
   push:
     branches: ["prod"]
@@ -11,9 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Clonar el repo
+      # 1️⃣ Clonar el repo con historial completo y tags
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # Trae todo el historial
+          fetch-tags: true   # Trae todos los tags
 
       # 2️⃣ Loguear a Docker Hub
       - name: Log in to Docker Hub
@@ -27,17 +30,24 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest .
 
-      # 4️⃣ Etiquetar con el tag de release si existe
+      # 4️⃣ Etiquetar con el último tag de Git si existe
       - name: Tag Docker image
         run: |
-          # Obtener el último tag de Git
-          TAG=$(git describe --tags --abbrev=0)
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$TAG || echo "No tag found, skipping"
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$TAG" ]; then
+            echo "🏷️ Etiquetando imagen con $TAG"
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest \
+              ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$TAG
+          else
+            echo "⚠️ No se encontró ningún tag, se publicará solo como latest"
+          fi
 
       # 5️⃣ Subir imagen a Docker Hub
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest
-          # Pushear también con tag si existe
-          TAG=$(git describe --tags --abbrev=0)
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$TAG || echo "No tag found, skipping"
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$TAG" ]; then
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$TAG
+          fi
+
