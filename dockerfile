@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements e instalar dependencias
-COPY requirements.txt .
+COPY requeriments.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código de la app
@@ -24,3 +24,4 @@ EXPOSE 8000
 
 # Usar start.sh como punto de entrada
 CMD ["./start.sh"]
+
