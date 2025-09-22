@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image Desarrollo
 
 on:
   push:
@@ -40,4 +40,5 @@ jobs:
           else
             docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:${GITHUB_REF_NAME}
           fi
+
 
