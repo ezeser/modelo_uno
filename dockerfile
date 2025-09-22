@@ -2,21 +2,25 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Dependencias del sistema
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Instalar dependencias del sistema necesarias para Torch/Transformers
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements y instalar dependencias
-COPY requeriments.txt .
-RUN pip install --no-cache-dir -r requeriments.txt
-
-# 🔹 Forzar instalación de FastAPI y Uvicorn
-RUN pip install --no-cache-dir fastapi uvicorn[standard]
+# Copiar requirements e instalar dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código de la app
 COPY . .
 
-# Exponer puerto FastAPI.
+# Dar permisos al start.sh
+RUN chmod +x start.sh
+
+# Exponer puerto FastAPI
 EXPOSE 8000
 
-# Comando para arrancar la app
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Usar start.sh como punto de entrada
+CMD ["./start.sh"]
