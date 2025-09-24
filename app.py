@@ -1,10 +1,13 @@
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from transformers import pipeline
+from collections import defaultdict
 
+# Inicializar FastAPI
 app = FastAPI()
 
-# Inicializar pipeline zero-shot-classification
+# Inicializar pipeline de clasificación
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 class Ticket(BaseModel):
@@ -21,15 +24,55 @@ CATEGORIAS = [
     "Usuarios", "Otro"
 ]
 
+# 🔹 Variables globales para métricas
+metrics = defaultdict(int)
+metrics["requests_total"] = 0
+metrics["tokens_in_total"] = 0
+metrics["tokens_out_total"] = 0
+metrics["total_time"] = 0.0
+
+# Tokenizer para contar tokens (opcional)
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-mnli")
+
 @app.post("/clasificar")
 def clasificar(ticket: Ticket):
-    # Ejecutar zero-shot classification
+    start_time = time.time()
+
+    # Contar tokens de entrada
+    tokens_in = len(tokenizer.encode(ticket.texto))
+
+    # Ejecutar clasificación
     result = classifier(ticket.texto, candidate_labels=CATEGORIAS)
-    
-    # Devolver la categoría más probable
     categoria = result["labels"][0]
-    
+
+    # Contar tokens de salida aproximados (categoría + labels devueltos)
+    tokens_out = sum(len(tokenizer.encode(lbl)) for lbl in result["labels"])
+
+    elapsed_time = time.time() - start_time
+
+    # Actualizar métricas globales
+    metrics["requests_total"] += 1
+    metrics["tokens_in_total"] += tokens_in
+    metrics["tokens_out_total"] += tokens_out
+    metrics["total_time"] += elapsed_time
+
     return {
         "texto": ticket.texto,
-        "categoria": categoria
+        "categoria": categoria,
+        "metrics": {
+            "tokens_in": tokens_in,
+            "tokens_out": tokens_out,
+            "process_time": elapsed_time
+        }
+    }
+
+@app.get("/metrics")
+def get_metrics():
+    avg_time = metrics["total_time"] / metrics["requests_total"] if metrics["requests_total"] > 0 else 0
+    return {
+        "requests_total": metrics["requests_total"],
+        "tokens_in_total": metrics["tokens_in_total"],
+        "tokens_out_total": metrics["tokens_out_total"],
+        "avg_response_time": avg_time
     }
