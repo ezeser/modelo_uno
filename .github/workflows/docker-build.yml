@@ -1,6 +1,5 @@
 name: Build and Push Docker Image
 
-# Se ejecuta al hacer push a la rama prod o manualmente
 on:
   push:
     branches: ["prod"]
@@ -11,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Clonar el repo con historial completo y tags
+      # 1️⃣ Clonar repo completo con tags
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Trae todo el historial
-          fetch-tags: true   # Trae todos los tags
+          fetch-depth: 0
+          fetch-tags: true
 
       # 2️⃣ Loguear a Docker Hub
       - name: Log in to Docker Hub
@@ -25,29 +24,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3️⃣ Construir la imagen Docker
-      - name: Build Docker image
+      # 3️⃣ Obtener la versión
+      - name: Set version
+        id: get_version
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest .
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version detected: $VERSION"
 
-      # 4️⃣ Etiquetar con el último tag de Git si existe
-      - name: Tag Docker image
+      # 4️⃣ Construir y taguear la imagen directamente
+      - name: Build and tag Docker image
         run: |
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -n "$TAG" ]; then
-            echo "🏷️ Etiquetando imagen con $TAG"
-            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest \
-              ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$TAG
-          else
-            echo "⚠️ No se encontró ningún tag, se publicará solo como latest"
-          fi
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest \
+                       -t ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$VERSION .
 
       # 5️⃣ Subir imagen a Docker Hub
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:latest
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -n "$TAG" ]; then
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$TAG
-          fi
-
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-tickets:$VERSION
