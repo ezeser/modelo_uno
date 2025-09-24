@@ -14,7 +14,7 @@ fi
 # 3️⃣ Pedir mensaje de commit
 read -rp "📝 Escribe el mensaje de commit: " COMMIT_MSG
 
-# 4️⃣ Obtener la última versión estable desde main/master
+# 4️⃣ Obtener la última versión estable desde main/prod
 BASE_TAG=$(git describe --tags --abbrev=0 origin/prod 2>/dev/null || echo "v1.0.0")
 BASE_NUM=${BASE_TAG#v}
 IFS='.' read -r MAJOR MINOR PATCH <<<"$BASE_NUM"
@@ -45,4 +45,4 @@ git push origin prod
 git tag "$NEW_TAG"
 git push origin "$NEW_TAG"
 
-echo "✅ Commit y tag $NEW_TAG publicados correctamente (branch master)."
+echo "✅ Commit y tag $NEW_TAG publicados correctamente (branch prod)."
