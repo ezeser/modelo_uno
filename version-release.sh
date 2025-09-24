@@ -28,7 +28,7 @@ echo ""
 echo "🚀 Preparando release..."
 echo "   Archivos a commitear:"
 echo "$CHANGED" | sed 's/^/     • /'
-echo "   Branch destino: master"
+echo "   Branch destino: prod"
 echo "   Commit:         $COMMIT_MSG"
 echo "   Base tag:       $BASE_TAG"
 echo "   Nuevo tag:      $NEW_TAG"
