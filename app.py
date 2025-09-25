@@ -1,17 +1,22 @@
 import time
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
 from collections import defaultdict
+import torch
 
 # Inicializar FastAPI
 app = FastAPI()
 
-# Inicializar pipeline de clasificación
-classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+# Detectar si hay GPU disponible
+device = 0 if torch.cuda.is_available() else -1
 
-class Ticket(BaseModel):
-    texto: str
+# Inicializar pipeline de clasificación en GPU (si existe) o CPU
+classifier = pipeline(
+    "zero-shot-classification",
+    model="facebook/bart-large-mnli",
+    device=device
+)
 
 # Lista de categorías
 CATEGORIAS = [
@@ -31,9 +36,11 @@ metrics["tokens_in_total"] = 0
 metrics["tokens_out_total"] = 0
 metrics["total_time"] = 0.0
 
-# Tokenizer para contar tokens (opcional)
-from transformers import AutoTokenizer
+# Tokenizer para contar tokens
 tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-mnli")
+
+class Ticket(BaseModel):
+    texto: str
 
 @app.post("/clasificar")
 def clasificar(ticket: Ticket):
@@ -63,7 +70,8 @@ def clasificar(ticket: Ticket):
         "metrics": {
             "tokens_in": tokens_in,
             "tokens_out": tokens_out,
-            "process_time": elapsed_time
+            "process_time": elapsed_time,
+            "device": "GPU" if device == 0 else "CPU"
         }
     }
 
@@ -74,5 +82,6 @@ def get_metrics():
         "requests_total": metrics["requests_total"],
         "tokens_in_total": metrics["tokens_in_total"],
         "tokens_out_total": metrics["tokens_out_total"],
-        "avg_response_time": avg_time
+        "avg_response_time": avg_time,
+        "device": "GPU" if device == 0 else "CPU"
     }
