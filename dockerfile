@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y \
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Copiar requirements e instalar dependencias
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requeriments.txt .
+RUN pip install --no-cache-dir -r requeriments.txt
 
 # Copiar el código de la app
 COPY . .
