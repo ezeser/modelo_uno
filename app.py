@@ -11,8 +11,8 @@ app = FastAPI()
 # Detectar GPU
 device = 0 if torch.cuda.is_available() else -1
 
-# Inicializar pipeline con Mistral (mejor para clasificación más precisa)
-MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
+# Modelo más ligero recomendado
+MODEL_NAME = "facebook/bart-large-mnli"  # Más liviano que Mistral
 classifier = pipeline(
     "zero-shot-classification",
     model=MODEL_NAME,
@@ -50,12 +50,25 @@ def clasificar(ticket: Ticket):
     # Contar tokens de entrada
     tokens_in = len(tokenizer.encode(ticket.texto))
 
-    # Clasificación con top-3 categorías
-    result = classifier(ticket.texto, candidate_labels=CATEGORIAS)
-    top3_labels = result["labels"][:3]
-    top3_scores = result["scores"][:3]
+    # Generar prompts contextuales
+    prompts = [
+        f"Clasifica este ticket de TI: {ticket.texto}",
+        f"Qué categoría de soporte de TI describe mejor esto: {ticket.texto}?",
+        f"El siguiente mensaje pertenece a un ticket de soporte técnico, identifica sus categorías principales: {ticket.texto}"
+    ]
 
-    tokens_out = sum(len(tokenizer.encode(lbl)) for lbl in top3_labels)
+    # Clasificar con cada prompt
+    from collections import defaultdict
+    scores = defaultdict(float)
+    for p in prompts:
+        result = classifier(p, candidate_labels=CATEGORIAS)
+        for lbl, score in zip(result["labels"], result["scores"]):
+            scores[lbl] += score  # Sumar scores para ponderar
+
+    # Obtener top 3 finales
+    top3 = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:3]
+
+    tokens_out = sum(len(tokenizer.encode(lbl)) for lbl, _ in top3)
     elapsed_time = time.time() - start_time
 
     # Actualizar métricas
@@ -67,8 +80,8 @@ def clasificar(ticket: Ticket):
     return {
         "texto": ticket.texto,
         "categorias": [
-            {"label": top3_labels[i], "score": float(top3_scores[i])}
-            for i in range(3)
+            {"label": lbl, "score": float(score)}
+            for lbl, score in top3
         ],
         "metrics": {
             "tokens_in": tokens_in,
