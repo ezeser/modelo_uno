@@ -50,7 +50,7 @@ def clasificar(ticket: Ticket):
     # Contar tokens de entrada
     tokens_in = len(tokenizer.encode(ticket.texto))
 
-    # Generar prompts contextuales
+    # Prompts contextuales
     prompts = [
         f"Clasifica este ticket de TI: {ticket.texto}",
         f"Qué categoría de soporte de TI describe mejor esto: {ticket.texto}?",
@@ -58,15 +58,20 @@ def clasificar(ticket: Ticket):
     ]
 
     # Clasificar con cada prompt
-    from collections import defaultdict
     scores = defaultdict(float)
     for p in prompts:
         result = classifier(p, candidate_labels=CATEGORIAS)
         for lbl, score in zip(result["labels"], result["scores"]):
             scores[lbl] += score  # Sumar scores para ponderar
 
-    # Obtener top 3 finales
+    # Obtener top 3 finales (ordenadas por relevancia)
     top3 = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:3]
+
+    # Convertir a escalera mostrando el nombre real de la categoría
+    top3_escalera = [
+        {"categoria": lbl, "nivel": f"Categoria {i+1}", "score": float(score)}
+        for i, (lbl, score) in enumerate(top3)
+    ]
 
     tokens_out = sum(len(tokenizer.encode(lbl)) for lbl, _ in top3)
     elapsed_time = time.time() - start_time
@@ -79,10 +84,7 @@ def clasificar(ticket: Ticket):
 
     return {
         "texto": ticket.texto,
-        "categorias": [
-            {"label": lbl, "score": float(score)}
-            for lbl, score in top3
-        ],
+        "categorias": top3_escalera,
         "metrics": {
             "tokens_in": tokens_in,
             "tokens_out": tokens_out,
