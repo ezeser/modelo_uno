@@ -1,5 +1,5 @@
 import time
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import pipeline, AutoTokenizer
 from collections import defaultdict
@@ -8,17 +8,18 @@ import torch
 # Inicializar FastAPI
 app = FastAPI()
 
-# Detectar si hay GPU disponible
+# Detectar GPU
 device = 0 if torch.cuda.is_available() else -1
 
-# Inicializar pipeline de clasificación en GPU (si existe) o CPU
+# Inicializar pipeline con Mistral (mejor para clasificación más precisa)
+MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
 classifier = pipeline(
     "zero-shot-classification",
-    model="facebook/bart-large-mnli",
+    model=MODEL_NAME,
     device=device
 )
 
-# Lista de categorías
+# Categorías predefinidas
 CATEGORIAS = [
     "Infraestructura", "Soporte", "BI", "ITSM", "Desarrollo", "Redes", "Seguridad",
     "Correo", "Aplicación", "Base de Datos", "Hardware", "Software",
@@ -29,7 +30,7 @@ CATEGORIAS = [
     "Usuarios", "Otro"
 ]
 
-# 🔹 Variables globales para métricas
+# Métricas globales
 metrics = defaultdict(int)
 metrics["requests_total"] = 0
 metrics["tokens_in_total"] = 0
@@ -37,7 +38,7 @@ metrics["tokens_out_total"] = 0
 metrics["total_time"] = 0.0
 
 # Tokenizer para contar tokens
-tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-mnli")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
 class Ticket(BaseModel):
     texto: str
@@ -49,16 +50,15 @@ def clasificar(ticket: Ticket):
     # Contar tokens de entrada
     tokens_in = len(tokenizer.encode(ticket.texto))
 
-    # Ejecutar clasificación
+    # Clasificación con top-3 categorías
     result = classifier(ticket.texto, candidate_labels=CATEGORIAS)
-    categoria = result["labels"][0]
+    top3_labels = result["labels"][:3]
+    top3_scores = result["scores"][:3]
 
-    # Contar tokens de salida aproximados (categoría + labels devueltos)
-    tokens_out = sum(len(tokenizer.encode(lbl)) for lbl in result["labels"])
-
+    tokens_out = sum(len(tokenizer.encode(lbl)) for lbl in top3_labels)
     elapsed_time = time.time() - start_time
 
-    # Actualizar métricas globales
+    # Actualizar métricas
     metrics["requests_total"] += 1
     metrics["tokens_in_total"] += tokens_in
     metrics["tokens_out_total"] += tokens_out
@@ -66,7 +66,10 @@ def clasificar(ticket: Ticket):
 
     return {
         "texto": ticket.texto,
-        "categoria": categoria,
+        "categorias": [
+            {"label": top3_labels[i], "score": float(top3_scores[i])}
+            for i in range(3)
+        ],
         "metrics": {
             "tokens_in": tokens_in,
             "tokens_out": tokens_out,
