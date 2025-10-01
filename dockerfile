@@ -18,14 +18,16 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY requeriments.txt .
 RUN pip install --no-cache-dir -r requeriments.txt
 
-# Copiar el código de la app
+# Copiar el código de la app (FastAPI + Streamlit + start.sh)
 COPY . .
 
 # Dar permisos al start.sh
 RUN chmod +x start.sh
 
-# Exponer puerto FastAPI
+# Exponer puertos FastAPI (8000) y Streamlit (8501)
 EXPOSE 8000
+EXPOSE 8501
 
-# Usar start.sh como entrypoint
-CMD ["./start.sh"]
+# Lanzar FastAPI + Streamlit en paralelo
+CMD ["bash", "-c", "uvicorn app:app --host 0.0.0.0 --port 8000 --workers 1 & streamlit run ui_streamlit.py --server.port=8501 --server.address=0.0.0.0 && wait"]
+

@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🚀 Iniciando el microagente de tickets con FastAPI + Uvicorn..."
+echo "🚀 Iniciando el microagente de tickets con FastAPI + Streamlit..."
 
-# Variables opcionales para configuración
+# Variables opcionales
 WORKERS=${WORKERS:-1}
 HOST=${HOST:-0.0.0.0}
 PORT=${PORT:-8000}
+PORT_UI=${PORT_UI:-8501}
 
-# Lanzar Uvicorn con workers y autoreload solo si estamos en dev
+# Levantar FastAPI en background
 if [ "$ENV" = "dev" ]; then
-    exec uvicorn app:app --host $HOST --port $PORT --reload
+    uvicorn app:app --host $HOST --port $PORT --reload &
 else
-    exec uvicorn app:app --host $HOST --port $PORT --workers $WORKERS
+    uvicorn app:app --host $HOST --port $PORT --workers $WORKERS &
 fi
+
+# Levantar Streamlit en foreground
+exec streamlit run ui_streamlit.py --server.port $PORT_UI --server.address $HOST
