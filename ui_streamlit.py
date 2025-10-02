@@ -1,6 +1,7 @@
 # ui_streamlit.py
 import streamlit as st
 import requests
+import os
 
 st.set_page_config(page_title="Clasificador de Tickets TI", layout="wide")
 
@@ -11,8 +12,11 @@ Esta interfaz permite enviar tickets al microagente y obtener las categorías m�
 """
 )
 
-# URL del API FastAPI
-API_URL = st.text_input("Ingrese la URL del API FastAPI", "http://localhost:8000/clasificar")
+# Detectar automáticamente la URL de FastAPI
+API_URL = st.text_input(
+    "Ingrese la URL del API FastAPI",
+    os.getenv("FASTAPI_URL", "http://127.0.0.1:8000/clasificar")
+)
 
 ticket_texto = st.text_area("Ingrese el texto del ticket:", height=150)
 
