@@ -8,16 +8,15 @@ import os
 st.set_page_config(page_title="Clasificador de Tickets TI", layout="wide")
 
 # ----------------------------
-# Estilos corporativos CSS con fondo difuminado
+# Estilos corporativos CSS con fondo transparente
 # ----------------------------
 st.markdown(
     f"""
     <style>
-    /* Fondo difuminado */
+    /* Fondo transparente */
     .stApp {{
         background: url("NTechCover_Screen-3.png") no-repeat center center;
         background-size: cover;
-        filter: blur(8px);  /* Difuminado */
         position: fixed;
         width: 100%;
         height: 100%;
@@ -26,7 +25,7 @@ st.markdown(
 
     /* Fondo semitransparente para todo el contenido */
     .stContainer, .stApp > div {{
-        background-color: rgba(0, 0, 0, 0.6);  /* Semi-transparente */
+        background-color: rgba(0, 0, 0, 0.5);  /* Semi-transparente */
         position: relative;
         z-index: 1;
         border-radius: 10px;
