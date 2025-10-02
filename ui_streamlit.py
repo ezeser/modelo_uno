@@ -8,69 +8,82 @@ import os
 st.set_page_config(page_title="Clasificador de Tickets TI", layout="wide")
 
 # ----------------------------
-# Estilos corporativos CSS
+# Estilos corporativos CSS con fondo difuminado
 # ----------------------------
 st.markdown(
-    """
+    f"""
     <style>
-    /* Fondo general */
-    .stApp {
-        background-color: #000000;
-        color: #FFFFFF;
-    }
-    /* Barra lateral */
-    .css-1d391kg {
-        background-color: #111111;
-    }
+    /* Fondo difuminado */
+    .stApp {{
+        background: url("NTechCover_Screen-3.png") no-repeat center center;
+        background-size: cover;
+        filter: blur(8px);  /* Difuminado */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }}
+
+    /* Fondo semitransparente para todo el contenido */
+    .stContainer, .stApp > div {{
+        background-color: rgba(0, 0, 0, 0.6);  /* Semi-transparente */
+        position: relative;
+        z-index: 1;
+        border-radius: 10px;
+    }}
+
     /* Logo centrado */
-    .logo {
+    .logo {{
         display: flex;
         justify-content: center;
         align-items: center;
         margin-bottom: 20px;
-    }
+    }}
+
     /* Títulos */
-    .stMarkdown h1, .stMarkdown h2 {
+    .stMarkdown h1, .stMarkdown h2 {{
         color: #00FF00;
-    }
+    }}
+
     /* Botones */
-    .stButton>button {
+    .stButton>button {{
         background-color: #00FF00;
         color: #000000;
         border-radius: 8px;
         font-weight: bold;
         padding: 10px 24px;
-    }
-    .stButton>button:hover {
+    }}
+    .stButton>button:hover {{
         background-color: #00cc00;
-    }
+    }}
+
     /* Campos de entrada */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {{
         background-color: #111111;
         color: #FFFFFF;
         border: 2px solid #00FF00;
         border-radius: 6px;
         padding: 6px;
-    }
+    }}
+
     /* Contenedores */
-    .stContainer {
-        background-color: #111111;
+    .stContainer {{
         padding: 15px;
-        border-radius: 10px;
         box-shadow: 0 0 15px #00FF00;
         margin-bottom: 20px;
-    }
+    }}
+
     /* Separadores */
-    hr {
+    hr {{
         border: 1px solid #00FF00;
-    }
+    }}
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # ----------------------------
-# Logo (reemplaza con tu archivo)
+# Logo
 # ----------------------------
 st.markdown(
     """
