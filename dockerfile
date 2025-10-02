@@ -29,5 +29,4 @@ EXPOSE 8000
 EXPOSE 8501
 
 # Lanzar FastAPI + Streamlit en paralelo
-CMD ["bash", "-c", "uvicorn app:app --host 0.0.0.0 --port 8000 --workers 1 & streamlit run ui_streamlit.py --server.port=8501 --server.address=0.0.0.0 && wait"]
-
+CMD ["./start.sh"]
